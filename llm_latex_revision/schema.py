@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from uuid import uuid4
 from typing import Optional
+from uuid import uuid4
+
+from pydantic import BaseModel, Field
 
 
 class TexSegment(BaseModel):
@@ -106,7 +107,56 @@ class TranslationParameterSet(BaseModel):
     # frequency_penalty:float
 
 
-class TargetToSourceStyleTranslation(BaseModel):
+class PromptTemplate(BaseModel):
+    name: str
+    """ A unique name of this prompt template """
+
+    instruction_role: str
+
+    instruction_comprehend: str
+    """ instruction to comprehend the original article """
+
+    start_original: str = "[START OF THE COMPLETE LATEX DOCUMENT]"
+
+    end_original: str = "[END OF THE COMPLETE LATEX DOCUMENT]"
+
+    start_segment: str = "[START OF THE ORIGINAL LATEX SEGMENT]"
+
+    end_segment: str = "[END OF THE ORIGINAL LATEX SEGMENT]"
+
+    instruction_rewrite: str
+    """ instruction to rewrite specific segment """
+
+    addition_instruction: str
+
+    def get_prompt(self, segment: TexSegment, complete_document: str, including_complete: bool = False):
+        if including_complete:
+            parts = [
+                self.instruction_role,
+                self.instruction_comprehend,
+                self.start_original,
+                complete_document,
+                self.end_original,
+                self.instruction_rewrite,
+                self.start_segment,
+                segment.text,
+                self.end_segment,
+                self.addition_instruction
+            ]
+
+        else:
+            parts = [
+                self.instruction_role,
+                self.instruction_rewrite,
+                self.start_segment,
+                segment.text,
+                self.end_segment,
+                self.addition_instruction
+            ]
+        return "\n".join(parts)
+
+
+class TargetToSourceStyleTranslation(BaseModel):  # TODO this is not used as it causes error if all fields are set
     """ A translation instance from target style to source style, used in generating data pairs for fine-tuning. """
 
     identifier: str = Field(default_factory=lambda: f"translation-{uuid4()}")
@@ -118,7 +168,7 @@ class TargetToSourceStyleTranslation(BaseModel):
     source_data: Optional[SourceStyleData] = None
     """ Source data in this translation. """
 
-    tokenizer: Optional[str]
+    tokenizer: Optional[str] = None
     """ Tokenizer used in this translation. """
 
     n_tokens_target: Optional[int] = None
@@ -127,14 +177,16 @@ class TargetToSourceStyleTranslation(BaseModel):
     n_tokens_source: Optional[int] = None
     """ The number of tokens of the source text. """
 
-    translator_name: str
+    translation_model_name: str
     """ The name of the translation model. """
 
-    translation_params: TranslationParameterSet
+    translation_params: dict = dict()
     """ The parameter set used in this translation. """
 
-    system_prompt: str
-    """ The first part of the final prompt. """
+    prompt_template_name: str
+    """ The prompt template used to generate input prompt. """
 
-    instruction_prompt: str
-    """ The last part of the final prompt excluding user input. """
+    prompt: str
+    """ The actual prompt. """
+
+    prompt_including_complete: bool
