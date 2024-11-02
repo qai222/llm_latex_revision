@@ -1,0 +1,45 @@
+# [QWEN OFFICIAL FINETUNE](https://github.com/QwenLM/Qwen/blob/main/recipes/finetune/deepspeed/finetune_lora_multi_gpu.ipynb)
+
+### model
+model_name_or_path: Qwen/Qwen2.5-7B-Instruct
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_target: all
+lora_rank: 16
+lora_alpha: 16
+lora_dropout: 0.05
+# deepspeed: ds_z3_config.json
+deepspeed: ds_z3_offload_config.json  # offload to cpu
+
+### dataset
+dataset: latex_revision_cwc
+template: qwen
+cutoff_len: 4096  # max total token cwc = 6369
+overwrite_cache: true
+preprocessing_num_workers: 16
+
+### output
+output_dir: saves/qwen2-7b/lora/sft
+logging_steps: 100
+save_steps: 100
+plot_loss: true
+overwrite_output_dir: true
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 1  # was 16, this times num_gpu = effective batch size
+learning_rate: 1.0e-5
+num_train_epochs: 5  # 5 from QWEN OFFICIAL FINETUNE
+lr_scheduler_type: cosine
+warmup_ratio: 0.01
+bf16: true
+ddp_timeout: 180000000
+
+### eval
+val_size: 0.1
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 500

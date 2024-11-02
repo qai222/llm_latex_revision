@@ -1,0 +1,7 @@
+#model_name_or_path: Qwen/Qwen2.5-7B-Instruct
+#adapter_name_or_path: saves/qwen2-7b/lora/sft
+#template: qwen
+#finetuning_type: lora
+
+model_name_or_path: models/qwen2.5_lora_sft/
+template: qwen
