@@ -1,0 +1,5 @@
+\subsection{Pooling strategies}
+
+We computed a multiple sequence alignment (MSA) for pooling using \texttt{Muscle} with default parameters on each dataset. In cases where certain datasets exhibited high coverage at many positions, ties were randomly broken to determine priority when selecting residue embeddings for pooling. This explains the notable variance observed in the glycosyltransferase results (Fig \ref{fig:pooling}), which were obtained over several seeds.
+
+We evaluated both coverage and conservation based pooling strategies by sampling $i \in \{1,2,3,6,11,19,34,62,111,200\}$ pooling residues. Each strategy was repeated for 3 random seeds.
